@@ -10,6 +10,9 @@
 
     <extensions defaultExtensionNs="com.intellij">
         <toolWindow factoryClass="com.github.lordrip.intellijtest.toolWindow.MyToolWindowFactory" id="MyToolWindow"/>
+
+        <fileEditorProvider implementation="com.github.lordrip.intellijtest.fileEditor.MyFileEditorProvider" />
+
         <postStartupActivity implementation="com.github.lordrip.intellijtest.startup.MyProjectActivity" />
     </extensions>
 </idea-plugin>
