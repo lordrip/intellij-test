@@ -9,10 +9,12 @@ import org.jetbrains.annotations.NonNls
 
 class MyFileEditorProvider : FileEditorProvider {
     override fun accept(
-        p0: Project, p1: VirtualFile
+        project: Project, virtualFile: VirtualFile
     ): Boolean {
-        // TODO: Implement your logic to determine if the file should be handled by this editor
-        return true;
+        return virtualFile.name.endsWith(".camel.yaml")
+                || virtualFile.name.endsWith(".camel.xml")
+                || virtualFile.name.endsWith(".kamelet.yaml")
+                || virtualFile.name.endsWith(".pipe.yaml")
     }
 
     override fun getEditorTypeId(): @NonNls String {
@@ -24,9 +26,9 @@ class MyFileEditorProvider : FileEditorProvider {
     }
 
     override fun createEditor(
-        p0: Project, p1: VirtualFile
+        project: Project, virtualFile: VirtualFile
     ): FileEditor {
-        return MyFileEditor(p0, p1)
+        return MyFileEditor(project, virtualFile)
     }
 
 }

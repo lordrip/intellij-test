@@ -12,28 +12,26 @@ import javax.swing.JComponent
 import javax.swing.JPanel
 
 class MyFileEditor(
-    private val project: Project, private val file: VirtualFile
+    private val project: Project, private val virtualFile: VirtualFile
 ) : FileEditor {
-    val webViewController = MyFileWebViewController(this, file)
-    val dummyComponent = JPanel(BorderLayout())
+    val webViewController = MyFileWebViewController(this, virtualFile)
 
     private val webView = object : JPanel(BorderLayout()) {
         init {
-            // This is where you would normally add the JCEF panel
-            // For now, we are using a dummy component to avoid JCEF setup
-            // add(dummyComponent, BorderLayout.CENTER)
             add(webViewController.jcefPanel.component, BorderLayout.CENTER)
         }
     }
 
     override fun getComponent(): JComponent {
-//        return dummyComponent
         return webViewController.jcefPanel.component
     }
 
     override fun getPreferredFocusedComponent(): JComponent? {
-//        return dummyComponent
         return webViewController.jcefPanel.component
+    }
+
+    override fun getFile(): VirtualFile? {
+        return virtualFile;
     }
 
     override fun getName(): @Nls(capitalization = Nls.Capitalization.Title) String {
