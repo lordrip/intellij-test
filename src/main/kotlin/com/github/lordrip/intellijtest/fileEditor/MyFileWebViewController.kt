@@ -1,6 +1,8 @@
 package com.github.lordrip.intellijtest.fileEditor
 
+import com.google.gson.JsonObject
 import com.intellij.openapi.Disposable
+import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.util.Disposer
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.ui.jcef.JBCefBrowser
@@ -10,6 +12,7 @@ import org.cef.browser.CefBrowser
 import org.cef.browser.CefFrame
 import org.cef.handler.CefLoadHandler
 import org.cef.network.CefRequest
+import java.nio.charset.StandardCharsets
 
 class MyFileWebViewController(
     private val parentDisposable: Disposable, private val file: VirtualFile
@@ -36,6 +39,10 @@ class MyFileWebViewController(
         Disposer.register(this, jcefPanel)
         Disposer.register(this, jsQuery)
 
+        val content: String = ApplicationManager.getApplication().runReadAction<String> {
+            file.contentsToByteArray().toString(StandardCharsets.UTF_8)
+        }
+
         jsQuery.addHandler { message ->
             println("📨 Received from JS: $message")
             null
@@ -43,18 +50,13 @@ class MyFileWebViewController(
 
         jcefPanel.jbCefClient.addLoadHandler(object : CefLoadHandler {
             override fun onLoadingStateChange(
-                browser: CefBrowser,
-                isLoading: Boolean,
-                canGoBack: Boolean,
-                canGoForward: Boolean
+                browser: CefBrowser, isLoading: Boolean, canGoBack: Boolean, canGoForward: Boolean
             ) {
                 // Handle loading state changes if needed
             }
 
             override fun onLoadStart(
-                p0: CefBrowser?,
-                p1: CefFrame?,
-                p2: CefRequest.TransitionType?
+                p0: CefBrowser?, p1: CefFrame?, p2: CefRequest.TransitionType?
             ) {
                 // Handle load start if needed
             }
@@ -67,10 +69,25 @@ class MyFileWebViewController(
                                         ${jsQuery.inject("data")}
                                     };
                                     console.log("Injected sendToIntelliJ");
-                                    """.trimIndent(),
+                                    """.trimIndent(), browser.url, 0
+                    )
+
+                    val json = JsonObject()
+                    json.addProperty("code", content)
+                    json.addProperty("path", file.name)
+                    browser?.executeJavaScript(
+                        """
+                            setTimeout(() => {
+                              window.dispatchEvent(new CustomEvent("FILE_CONTENT_RECEIVED", {
+                                detail: $json
+                              }));
+                              console.log("Dispatched FILE_CONTENT_RECEIVED");
+                            }, 2000); // 2000ms delay
+                            """.trimIndent(),
                         browser.url,
                         0
                     )
+
                 }
             }
 
